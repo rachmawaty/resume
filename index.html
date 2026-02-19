@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rachmawaty Sudirman — Product & Analytics</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sand: #f5f0e8;
+      --warm-white: #faf8f4;
+      --ink: #1a1714;
+      --muted: #7a7168;
+      --accent: #c8602a;
+      --accent-light: #e8956a;
+      --border: #ddd8cf;
+      --card-bg: #ffffff;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      background: var(--warm-white);
+      color: var(--ink);
+      font-size: 18px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE TEXTURE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.4;
+    }
+
+    /* ── LOAD MORE ── */
+    .portfolio-card.hidden { display: none; }
+
+    .load-more-wrap {
+      text-align: center;
+      margin-top: 3rem;
+    }
+
+    /* ── NAVIGATION ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 4rem;
+      background: rgba(250, 248, 244, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+      font-weight: 300;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--accent); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      padding: 0 4rem;
+      padding-top: 5rem;
+      gap: 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      right: -10%;
+      top: 10%;
+      width: 55%;
+      height: 80%;
+      background: radial-gradient(ellipse at center, rgba(200, 96, 42, 0.07) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .hero-text { z-index: 1; }
+
+    .hero-eyebrow {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.2s;
+    }
+
+    .hero-name {
+      font-size: clamp(2.8rem, 5vw, 4.5rem);
+      font-weight: 300;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.3rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.4s;
+    }
+
+    .hero-name em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero-title {
+      font-size: 1.1rem;
+      font-weight: 300;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      margin-bottom: 2rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.6s;
+    }
+
+    .hero-summary {
+      font-size: 1.05rem;
+      font-weight: 300;
+      color: var(--ink);
+      max-width: 480px;
+      margin-bottom: 2.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.8s;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 1s;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.8rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border-radius: 2px;
+      transition: all 0.25s;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #b8531f;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(200, 96, 42, 0.25);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    /* ── HERO VISUAL SIDE ── */
+    .hero-visual {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      animation: fadeIn 1.2s ease forwards 0.5s;
+    }
+
+    .hero-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 3rem;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.06);
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .stat-item {
+      padding: 1.2rem;
+      background: var(--sand);
+      border-radius: 3px;
+    }
+
+    .stat-num {
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 0.3rem;
+    }
+
+    .stat-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .stat-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 1.5rem 0;
+    }
+
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--muted);
+    }
+
+    /* ── SECTION SHARED ── */
+    section {
+      padding: 6rem 4rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin-bottom: 3.5rem;
+    }
+
+    .section-number {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+    }
+
+    .section-title {
+      font-size: 2.2rem;
+      font-weight: 300;
+      letter-spacing: -0.01em;
+    }
+
+    .section-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── EXPERIENCE ── */
+    #experience { background: var(--sand); }
+
+    .exp-list { display: flex; flex-direction: column; gap: 0; }
+
+    .exp-item {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 3rem;
+      padding: 2.5rem 0;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+
+    .exp-item:last-child { border-bottom: none; }
+
+    .exp-meta { padding-top: 0.2rem; }
+
+    .exp-period {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      margin-bottom: 0.4rem;
+    }
+
+    .exp-company {
+      font-size: 0.85rem;
+      font-weight: 400;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .exp-role {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      line-height: 1.3;
+    }
+
+    .exp-desc {
+      font-size: 0.95rem;
+      font-weight: 300;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      line-height: 1.8;
+    }
+
+    .exp-highlights {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .highlight {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      font-size: 0.9rem;
+      font-weight: 300;
+      line-height: 1.6;
+      color: var(--ink);
+    }
+
+    .highlight::before {
+      content: '→';
+      color: var(--accent);
+      flex-shrink: 0;
+      font-size: 0.85rem;
+      margin-top: 0.1rem;
+    }
+
+    /* ── PORTFOLIO ── */
+    #portfolio {}
+
+    .portfolio-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .portfolio-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2rem;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .portfolio-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px;
+      height: 0;
+      background: var(--accent);
+      transition: height 0.3s;
+    }
+
+    .portfolio-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,0.08); }
+    .portfolio-card:hover::before { height: 100%; }
+
+    .card-category {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.8rem;
+    }
+
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 0.7rem;
+      line-height: 1.3;
+    }
+
+    .card-desc {
+      font-size: 0.9rem;
+      font-weight: 300;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 1.2rem;
+    }
+
+    .card-link {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: gap 0.2s;
+    }
+
+    .card-link:hover { gap: 0.7rem; }
+
+    /* ── EDUCATION ── */
+    #education { background: var(--sand); }
+
+    .edu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .edu-card {
+      background: var(--warm-white);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2rem;
+    }
+
+    .edu-year {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    .edu-degree {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+      line-height: 1.4;
+    }
+
+    .edu-school {
+      font-size: 0.95rem;
+      font-style: italic;
+      color: var(--muted);
+      margin-bottom: 0.8rem;
+    }
+
+    .edu-detail {
+      font-size: 0.85rem;
+      font-weight: 300;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── SKILLS ── */
+    .skills-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      max-width: 900px;
+    }
+
+    .skills-group h3 {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .skills-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .skill-tag {
+      font-size: 0.9rem;
+      font-weight: 300;
+      padding: 0.4rem 0.9rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+
+    .skill-tag:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ── AWARDS ── */
+    .awards-list { display: flex; flex-direction: column; gap: 0; }
+
+    .award-item {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      padding: 1.2rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .award-year {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--accent);
+      min-width: 50px;
+    }
+
+    .award-title {
+      font-size: 1rem;
+      font-weight: 400;
+    }
+
+    /* ── CONTACT / FOOTER ── */
+    footer {
+      background: var(--ink);
+      color: var(--sand);
+      padding: 4rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: end;
+      gap: 2rem;
+    }
+
+    .footer-name {
+      font-size: 2.5rem;
+      font-weight: 300;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.01em;
+    }
+
+    .footer-tagline {
+      font-size: 0.95rem;
+      font-weight: 300;
+      color: rgba(245,240,232,0.5);
+      margin-bottom: 1.5rem;
+    }
+
+    .footer-contacts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+
+    .footer-link {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      color: rgba(245,240,232,0.7);
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .footer-link:hover { color: var(--accent-light); }
+
+    .footer-copy {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: rgba(245,240,232,0.3);
+      letter-spacing: 0.08em;
+      text-align: right;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      nav { padding: 1rem 2rem; }
+      .nav-links { display: none; }
+      .hero { grid-template-columns: 1fr; padding: 2rem; padding-top: 6rem; gap: 2rem; }
+      .hero-visual { display: none; }
+      section { padding: 4rem 2rem; }
+      .exp-item { grid-template-columns: 1fr; gap: 0.5rem; }
+      footer { grid-template-columns: 1fr; }
+      .footer-copy { text-align: left; }
+      .skills-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">RS</a>
+  <ul class="nav-links">
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#portfolio">Portfolio</a></li>
+    <li><a href="#education">Education</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="Sudirman_Rachmawaty_Resume_20260217.pdf" download class="btn btn-primary" style="padding:0.4rem 1rem;">↓ Resume</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-text">
+    <p class="hero-eyebrow">Product · Analytics · MIT MBA</p>
+    <h1 class="hero-name">Rachmawaty<br><em>Sudirman</em></h1>
+    <p class="hero-title">Customer Analytics & Product Management</p>
+    <p class="hero-summary">10+ years delivering business growth through advanced analytics, AI, and large-scale digital transformation. Currently completing an MBA at MIT Sloan.</p>
+    <div class="hero-cta">
+      <a href="#portfolio" class="btn btn-primary">View Portfolio</a>
+      <a href="Sudirman_Rachmawaty_Resume_20260217.pdf" download class="btn btn-outline">↓ Download Resume</a>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="hero-card">
+      <div class="stat-grid">
+        <div class="stat-item">
+          <div class="stat-num">10+</div>
+          <div class="stat-label">Years Experience</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">160M</div>
+          <div class="stat-label">Customers Served</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">40+</div>
+          <div class="stat-label">Team Members Led</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">$120K</div>
+          <div class="stat-label">New Revenue Stream</div>
+        </div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="hero-tags">
+        <span class="tag">AI/ML</span>
+        <span class="tag">Product</span>
+        <span class="tag">Analytics</span>
+        <span class="tag">Loyalty</span>
+        <span class="tag">Fintech</span>
+        <span class="tag">Telecom</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPERIENCE -->
+<section id="experience">
+  <div class="section-header reveal">
+    <span class="section-number">01</span>
+    <h2 class="section-title">Experience</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="exp-list">
+    <div class="exp-item reveal">
+      <div class="exp-meta">
+        <div class="exp-period">2023 — 2025</div>
+        <div class="exp-company">Telkomsel</div>
+      </div>
+      <div class="exp-content">
+        <div class="exp-role">Senior Technical Business Lead — Loyalty Products & Analytics</div>
+        <div class="exp-desc">Led cross-functional teams at Indonesia's largest telecom operator (160M+ subscribers), overseeing loyalty platforms and data migration for 25M+ high-value customers.</div>
+        <div class="exp-highlights">
+          <div class="highlight">Oversaw cross-functional teams of 40+ for system and data migration of 9M+ customers.</div>
+          <div class="highlight">Designed loyalty roadmap and boosted redemption rates across 10M+ annual transactions.</div>
+          <div class="highlight">Led AI/ML Next Best Offer engine generating $120K in new annual revenue.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exp-item reveal">
+      <div class="exp-meta">
+        <div class="exp-period">2018 — 2023</div>
+        <div class="exp-company">Telkomsel</div>
+      </div>
+      <div class="exp-content">
+        <div class="exp-role">Data Product Manager — Consumer Analytics & Digital Channel</div>
+        <div class="exp-desc">Built analytics infrastructure and product initiatives for digital channels serving 40M+ monthly active users.</div>
+        <div class="exp-highlights">
+          <div class="highlight">Led 25+ data teams for BI system transformation and marketing analytics pipeline.</div>
+          <div class="highlight">Managed 160M customer data ecosystems with 300+ parameters, achieving up to 60% broadband revenue impact.</div>
+          <div class="highlight">Drove mobile app improvements that increased Monthly Active Users by 2M+.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exp-item reveal">
+      <div class="exp-meta">
+        <div class="exp-period">2017 — 2018</div>
+        <div class="exp-company">Telkomsel</div>
+      </div>
+      <div class="exp-content">
+        <div class="exp-role">Associate — Customer Experience & Service Evaluation</div>
+        <div class="exp-desc">Conducted customer journey analysis and market research to identify pain points and improve service design, monetization, and NPS.</div>
+        <div class="exp-highlights">
+          <div class="highlight">Recommended simplification initiatives that improved UX and NPS across core consumer products.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="exp-item reveal">
+      <div class="exp-meta">
+        <div class="exp-period">2013 — 2017</div>
+        <div class="exp-company">LAPIDIVUSI / Kleora</div>
+      </div>
+      <div class="exp-content">
+        <div class="exp-role">Data Management Consultant & Software Engineer</div>
+        <div class="exp-desc">Consulting and early-stage startup experience across healthcare data warehousing, oil & gas digital transformation, and e-commerce backend development.</div>
+        <div class="exp-highlights">
+          <div class="highlight">Designed a data warehouse system for 70+ public healthcare centers in Indonesia.</div>
+          <div class="highlight">Implemented digital transformation for Indonesia's largest oil and gas company.</div>
+          <div class="highlight">Designed and developed a database system and backend service using a test-driven development approach.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PORTFOLIO -->
+<section id="portfolio">
+  <div class="section-header reveal">
+    <span class="section-number">02</span>
+    <h2 class="section-title">Portfolio</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="portfolio-grid">
+    <div class="portfolio-card reveal">
+      <div class="card-category">AI · Product</div>
+      <div class="card-title">Next Best Offer Engine</div>
+      <div class="card-desc">Defined vision, metrics, and roadmap for an AI/ML-driven personalized offer and dynamic merchandising system. Launched and scaled to generate new revenue streams for Telkomsel's 25M+ high-value customers.</div>
+      <!-- Replace '#' with your case study URL -->
+      <a href="#" class="card-link">View Case Study →</a>
+    </div>
+
+    <div class="portfolio-card reveal">
+      <div class="card-category">Analytics · BI</div>
+      <div class="card-title">Business Intelligence Transformation</div>
+      <div class="card-desc">Led BI system transformation for end-to-end marketing analytics pipeline, managed 160M+ customer base, built executive-level dashboard for CMO on marketing archetype, simplified product development process, developed Customer Data Platform for digital campaign management.</div>
+      <a href="#" class="card-link">View Case Study →</a>
+    </div>
+
+    <div class="portfolio-card reveal">
+      <div class="card-category">Product · Loyalty</div>
+      <div class="card-title">Loyalty Platform Redesign</div>
+      <div class="card-desc">Designed loyalty roadmap and strategy, improving customer journey through new programs and features. Oversaw migration of 9M+ customers with system integration serving 25M+ high-value subscribers.</div>
+      <a href="#" class="card-link">View Case Study →</a>
+    </div>
+
+    <div class="portfolio-card reveal">
+      <div class="card-category">NLP · Machine Learning</div>
+      <div class="card-title">Customer Service Email Categorization</div>
+      <div class="card-desc">Developed classical machine learning models using NLP for email categorization in collaboration with CMA CGM through MIT Sloan's Analytics Lab program.</div>
+      <a href="#" class="card-link">View Case Study →</a>
+    </div>
+
+    <div class="portfolio-card reveal">
+      <div class="card-category">Strategy · SaaS</div>
+      <div class="card-title">AI Defensibility Roadmap</div>
+      <div class="card-desc">Designed product strategy and roadmap for AI defensibility in SaaS products in collaboration with Nasdaq, as part of MIT Sloan's Product Management Lab.</div>
+      <a href="#" class="card-link">View Case Study →</a>
+    </div>
+
+    <div class="portfolio-card reveal">
+      <div class="card-category">Mobile · Growth</div>
+      <div class="card-title">Consumer App Growth Initiative</div>
+      <div class="card-desc">Led mobile application development for 40M+ monthly active users, including loan products, credit scoring, and a milestone feature that increased Monthly Active Users by 2M+.</div>
+      <a href="#" class="card-link">View Case Study →</a>
+    </div>
+  </div>
+  <div class="portfolio-grid hidden-batch" id="batch-2" style="display:none; margin-top:1.5rem;">
+    <!-- cards 7–12 go here, same structure as your existing ones -->
+    <div class="portfolio-card reveal"> ... </div>
+    <div class="portfolio-card reveal"> ... </div>
+    <!-- etc -->
+  </div>
+</div>
+  <div class="load-more-wrap">
+    <button class="btn btn-outline" id="load-more-btn" onclick="loadMore()">Load More ↓</button>
+  </div>
+</section>
+
+<!-- EDUCATION -->
+<section id="education">
+  <div class="section-header reveal">
+    <span class="section-number">03</span>
+    <h2 class="section-title">Education</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="edu-grid">
+    <div class="edu-card reveal">
+      <div class="edu-year">May 2026</div>
+      <div class="edu-degree">Master of Business Administration</div>
+      <div class="edu-school">MIT Sloan School of Management, Cambridge, US</div>
+      <div class="edu-detail">Sloan Fellows Program · Business Analytics & Product Management Certificates · Telkomsel Scholarship Awardee</div>
+    </div>
+
+    <div class="edu-card reveal">
+      <div class="edu-year">December 2016</div>
+      <div class="edu-degree">MSc, Advanced Computer Science & IT Management</div>
+      <div class="edu-school">The University of Manchester, UK</div>
+      <div class="edu-detail">Distinction · Best Master's Research Poster, BCSWomen Lovelace Colloquium UK · Indonesia LPDP Scholarship Awardee</div>
+    </div>
+
+    <div class="edu-card reveal">
+      <div class="edu-year">October 2013</div>
+      <div class="edu-degree">Bachelor of Engineering, Informatics Engineering</div>
+      <div class="edu-school">Bandung Institute of Technology, Indonesia</div>
+      <div class="edu-detail">Strong foundation in software engineering and information systems.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS + AWARDS -->
+<section id="skills">
+  <div class="section-header reveal">
+    <span class="section-number">04</span>
+    <h2 class="section-title">Skills & Recognition</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="skills-row reveal" style="margin-bottom:3rem;">
+    <div class="skills-group">
+      <h3>Technical</h3>
+      <div class="skills-tags">
+        <span class="skill-tag">SQL / PostgreSQL</span>
+        <span class="skill-tag">HiveQL</span>
+        <span class="skill-tag">Python</span>
+        <span class="skill-tag">R</span>
+        <span class="skill-tag">Tableau</span>
+        <span class="skill-tag">ML / AI</span>
+        <span class="skill-tag">NLP</span>
+      </div>
+    </div>
+    <div class="skills-group">
+      <h3>Product & Leadership</h3>
+      <div class="skills-tags">
+        <span class="skill-tag">Product Roadmap</span>
+        <span class="skill-tag">Growth Strategy</span>
+        <span class="skill-tag">System Transformation</span>
+        <span class="skill-tag">Change Management</span>
+        <span class="skill-tag">Cross-functional Leadership</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="awards-list reveal">
+    <div class="award-item">
+      <div class="award-year">2021</div>
+      <div class="award-title">1st Winner — Telkomsel InnoXtion Award, Process Category</div>
+    </div>
+    <div class="award-item">
+      <div class="award-year">2019</div>
+      <div class="award-title">1st Winner — High Value Customer Analytics (Telkomsel × Boston Consulting Group)</div>
+    </div>
+    <div class="award-item">
+      <div class="award-year">2016</div>
+      <div class="award-title">1st Winner — Master Research Poster, BCSWomen Lovelace Colloquium, UK</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER / CONTACT -->
+<footer id="contact">
+  <div>
+    <div class="footer-name">Let's Connect</div>
+    <div class="footer-tagline">Open to product, analytics, and leadership opportunities.</div>
+    <div class="footer-contacts">
+      <a href="mailto:rachmawatysudirman@gmail.com" class="footer-link">✉ rachmawatysudirman@gmail.com</a>
+      <a href="tel:+16172165029" class="footer-link">✆ (617) 216-5029</a>
+      <a href="https://www.linkedin.com/in/rachmawaty-sudirman/" target="_blank" class="footer-link">in LinkedIn</a>
+      <a href="Sudirman_Rachmawaty_Resume_20260217.pdf" download class="footer-link">↓ Download Resume</a>
+    </div>
+  </div>
+  <div class="footer-copy">© 2026 Rachmawaty Sudirman<br>Cambridge, Massachusetts</div>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => observer.observe(el));
+
+  function loadMore() {
+    const batch2 = document.getElementById('batch-2');
+    const btn = document.getElementById('load-more-btn');
+    batch2.style.display = 'grid';
+    batch2.style.gridTemplateColumns = 'repeat(auto-fit, minmax(340px, 1fr))';
+    batch2.style.gap = '1.5rem';
+    btn.style.display = 'none';
+  }
+</script>
+
+</body>
+</html>
